@@ -14,14 +14,25 @@ import com.daimajia.slider.library.SliderLayout;
 import com.daimajia.slider.library.SliderTypes.BaseSliderView;
 import com.daimajia.slider.library.SliderTypes.TextSliderView;
 import com.daimajia.slider.library.Tricks.ViewPagerEx;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.SignInButton;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.tasks.Task;
 
 import java.util.HashMap;
 
-public class MainActivity extends AppCompatActivity implements BaseSliderView.OnSliderClickListener, ViewPagerEx.OnPageChangeListener {
+public class SignInActivity extends AppCompatActivity implements BaseSliderView.OnSliderClickListener, ViewPagerEx.OnPageChangeListener {
     SliderLayout sliderLayout;
     HashMap<String, Integer> HashMapForLocal;
     Button User_Login,Dj_Login,Login_bt,Sign_Up;
     EditText email,password;
+
+    private static final String TAG = "AndroidClarified";
+    private GoogleSignInClient googleSignInClient;
+    int RC_SIGN_IN=0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,8 +47,36 @@ public class MainActivity extends AppCompatActivity implements BaseSliderView.On
         Sign_Up.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this,SignUPActivity.class);
+                Intent intent = new Intent(SignInActivity.this,SignUPActivity.class);
                 startActivity(intent);
+            }
+        });
+
+        Login_bt.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(SignInActivity.this,DrawerActicity.class);
+                startActivity(i);
+            }
+        });
+
+        SignInButton signInButton = findViewById(R.id.sign_in_button);
+
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .build();
+
+        googleSignInClient = GoogleSignIn.getClient(this, gso);
+
+
+        signInButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                switch (v.getId()) {
+                    case R.id.sign_in_button:
+                        signIn();
+                        break;
+                }
             }
         });
 
@@ -49,7 +88,7 @@ public class MainActivity extends AppCompatActivity implements BaseSliderView.On
         sliderLayout = findViewById(R.id.slider);
 
         for (String name : HashMapForLocal.keySet()) {
-            TextSliderView textSliderView = new TextSliderView(MainActivity.this);
+            TextSliderView textSliderView = new TextSliderView(SignInActivity.this);
 
             textSliderView.description(name).image(HashMapForLocal.get(name)).setScaleType(BaseSliderView.ScaleType.CenterCrop).setOnSliderClickListener(this);
 
@@ -61,9 +100,44 @@ public class MainActivity extends AppCompatActivity implements BaseSliderView.On
         sliderLayout.setPresetIndicator(SliderLayout.PresetIndicators.Center_Bottom);
         sliderLayout.setCustomAnimation(new DescriptionAnimation());
         sliderLayout.setDuration(3000);
-        sliderLayout.addOnPageChangeListener(MainActivity.this);
+        sliderLayout.addOnPageChangeListener(SignInActivity.this);
 
 
+    }
+
+    private void signIn() {
+
+        Intent signInIntent = googleSignInClient.getSignInIntent();
+        startActivityForResult(signInIntent, RC_SIGN_IN);
+    }
+
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        // Result returned from launching the Intent from GoogleSignInClient.getSignInIntent(...);
+        if (requestCode == RC_SIGN_IN) {
+            // The Task returned from this call is always completed, no need to attach
+            // a listener.
+            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+            handleSignInResult(task);
+        }
+    }
+
+    private void handleSignInResult(Task<GoogleSignInAccount> completedTask) {
+        try {
+            GoogleSignInAccount account = completedTask.getResult(ApiException.class);
+
+            // Signed in successfully, show authenticated UI.
+            Intent i = new Intent(SignInActivity.this,DrawerActicity.class);
+            startActivity(i);
+
+        } catch (ApiException e) {
+            // The ApiException status code indicates the detailed failure reason.
+            // Please refer to the GoogleSignInStatusCodes class reference for more information.
+            Log.w("error", "signInResult:failed code=" + e.getStatusCode());
+        }
     }
 
 

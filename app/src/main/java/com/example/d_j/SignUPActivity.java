@@ -84,7 +84,7 @@ public class SignUPActivity extends AppCompatActivity implements BaseSliderView.
         Sign_Upbt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(SignUPActivity.this,MainActivity.class);
+                Intent intent = new Intent(SignUPActivity.this, SignInActivity.class);
                 startActivity(intent);
 
                 int selectedId = radioGroup.getCheckedRadioButtonId();
